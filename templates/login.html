@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIGHTER - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E4EEF0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2.369rem;
+        }
+
+        .logo-section img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 1.333rem;
+        }
+
+        .brand-name {
+            font-family: 'Josefin Sans', sans-serif;
+            font-size: 2.369rem;
+            font-weight: 700;
+            color: #075056;
+            margin-bottom: 0.75rem;
+        }
+
+        .quote {
+            font-size: 1rem;
+            color: #16232a;
+            font-style: italic;
+            opacity: 0.85;
+        }
+
+        .login-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 3.157rem 2.369rem;
+            box-shadow: 0 4px 6px rgba(7, 80, 86, 0.1), 0 2px 4px rgba(7, 80, 86, 0.06);
+        }
+
+        .login-card h2 {
+            font-family: 'Josefin Sans', sans-serif;
+            font-size: 1.777rem;
+            color: #16232a;
+            margin-bottom: 1.777rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.333rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 1rem;
+            color: #16232a;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            border: 2px solid #E4EEF0;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+            color: #050315;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #075056;
+        }
+
+        .form-group input::placeholder {
+            color: #16232a;
+            opacity: 0.5;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            background-color: #075056;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin-top: 1.333rem;
+        }
+
+        .login-btn:hover {
+            background-color: #054045;
+        }
+
+        .login-btn:active {
+            transform: scale(0.98);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .forgot-password a {
+            font-size: 0.875rem;
+            color: #FF5B04;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 2.369rem 1.777rem;
+            }
+
+            .brand-name {
+                font-size: 1.777rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <!-- FIXED: proper Flask static logo -->
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="Logo" style="width: 250px; height: auto;">
+
+            
+        </div>
+
+        <div class="login-card">
+            <h2>Welcome Back</h2>
+
+            <!-- FIXED: added method + action -->
+            <form method="POST" action="/login">
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+
+                    <!-- name attribute correct for Flask -->
+                    <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="login-btn">Login</button>
+
+                <div class="forgot-password">
+                    <a href="#">Forgot password?</a>
+                </div>
+            </form>
+
+            <!-- Flask error message -->
+            {% if error %}
+                <p style="color:red; text-align:center; margin-top:15px;">
+                    {{ error }}
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

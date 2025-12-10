@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Josefin+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+  /* ---------- Theme variables ---------- */
+  :root{
+    --color-text: #050315;
+    --color-bg: #E4EEF0;
+    --color-primary: #075056;
+    --color-secondary: #FF5B04;
+    --color-accent: #16232a;
+
+    /* aliases so existing inline styles using --primary / --accent / --secondary still work */
+    --primary: var(--color-primary);
+    --secondary: var(--color-secondary);
+    --accent: var(--color-accent);
+
+    /* glass card subtle whites */
+    --glass-bg: rgba(255,255,255,0.58);
+    --glass-border: rgba(255,255,255,0.6);
+    --card-radius: 20px;
+    --pad: 1.2rem;
+    --gap: 1rem;
+
+    /* type scale (perfect fourth) */
+    --type-base: 1rem;        /* 16px */
+    --type-small: 0.75rem;    /* 12px */
+    --type-h3: 1.333rem;      /* ~21.3px */
+    --type-h2: 1.777rem;      /* ~28.4px */
+    --type-h1: 2.369rem;      /* ~38px */
+  }
+
+  /* ---------- Page ---------- */
+  html,body{
+    height:100%;
+    margin:0;
+    font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    background: linear-gradient(180deg,var(--color-bg) 0%, #dff1f3 100%);
+    color: var(--color-text);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  .wrap{
+    max-width:1100px;
+    margin: 40px auto;
+    padding: 1.5rem;
+  }
+
+  /* ---------- Header ---------- */
+  header.top {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:var(--gap);
+    margin-bottom:1rem;
+  }
+ 
+  .greet-card{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    padding:var(--pad);
+    border-radius:var(--card-radius);
+    background: linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,255,255,0.50));
+    border: 1px solid rgba(255,255,255,0.45);
+    box-shadow: 0 8px 28px rgba(14,20,24,0.06);
+  }
+
+  .greet-left{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .greet-left .hi {
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: var(--type-h3);
+    margin:0;
+    letter-spacing:0.2px;
+    color: var(--color-accent);
+  }
+  .greet-left .date {
+    font-size: var(--type-small);
+    color: rgba(5,3,21,0.7);
+  }
+
+  .avatar {
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    overflow:hidden;
+    flex-shrink:0;
+    display:inline-block;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 6px 18px rgba(5,3,21,0.06);
+  }
+  .avatar img { width:100%; height:100%; object-fit:cover; }
+
+  /* ---------- Grid ---------- */
+  .grid {
+    margin-top:1rem;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:1rem;
+  }
+
+  .card {
+    padding:1.15rem;
+    border-radius:var(--card-radius);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 10px 30px rgba(4,8,12,0.06);
+    backdrop-filter: blur(6px) saturate(120%);
+  }
+
+  .card h3 {
+    margin:0 0 0.25rem 0;
+    font-family: 'Josefin Sans', sans-serif;
+    font-size: var(--type-h3);
+    color: var(--color-accent);
+  }
+  .muted {
+    font-size: var(--type-small);
+    color: rgba(5,3,21,0.65);
+  }
+
+  /* ---------- Streak ---------- */
+  .streak {
+    display:flex;
+    align-items:center;
+    gap:12px;
+    font-weight:600;
+  }
+  .streak .count {
+    background: linear-gradient(90deg,var(--color-secondary), #ff7a3f);
+    color:white;
+    padding:8px 12px;
+    border-radius:12px;
+    font-weight:700;
+    box-shadow: 0 6px 18px rgba(255,91,4,0.15);
+  }
+
+  /* ---------- Calories card ---------- */
+  .cal-progress {
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .cal-left {
+    flex:1;
+  }
+  .cal-number {
+    font-size:1.05rem;
+    font-weight:700;
+  }
+  .meter {
+    width:100%;
+    height:12px;
+    border-radius:999px;
+    background: rgba(5,3,21,0.06);
+    overflow:hidden;
+    margin-top:8px;
+  }
+  .meter > span {
+    display:block;
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background: linear-gradient(90deg,var(--color-primary), #0b7a78);
+    transition: width 700ms cubic-bezier(.2,.9,.2,1);
+    box-shadow: 0 6px 14px rgba(7,80,86,0.12) inset;
+  }
+  .meter-labels {
+    display:flex;
+    justify-content:space-between;
+    margin-top:8px;
+    font-size:var(--type-small);
+  }
+
+  /* ---------- Weight card ---------- */
+  .weight-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .weight-main {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .weight-value {
+    font-size:1.2rem;
+    font-weight:700;
+    color: var(--color-accent);
+  }
+  .btn {
+    background: var(--color-secondary);
+    color: white;
+    border:none;
+    padding:10px 14px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+    box-shadow: 0 8px 20px rgba(255,91,4,0.12);
+  }
+
+  /* ---------- Chart card ---------- */
+  .chart-card canvas { width:100% !important; height:220px !important; }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top:1rem;
+    font-size:var(--type-small);
+    text-align:center;
+    color:rgba(5,3,21,0.6);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:1100px){
+    .grid{ grid-template-columns: 1fr; }
+    .avatar{ width:48px; height:48px; }
+  }
+
+.modal-actions button {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+#saveWeightBtn {
+  background: var(--color-secondary);
+  color: white;
+}
+
+#closeModalBtn {
+  background: #ccc;
+}
+
+</style>
+</head>
+<body>
+    <!-- NAVBAR (left exactly as you had it) -->
+<nav class="w-full bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto flex justify-between items-center py-4 px-4">
+
+        <!-- Logo -->
+        <div class="flex items-center gap-3">
+            <img src="/static/logo.png" class="w-9 h-9" alt="Logo">
+            <span class="text-xl font-semibold" style="color: var(--accent);">Lighter</span>
+        </div>
+
+        <!-- Menu -->
+        <div class="flex gap-6 text-[15px] font-medium">
+            <a href="/home" class="hover:text-[var(--primary)]">Home</a>
+            <a href="/dashboard" class="hover:text-[var(--primary)] font-semibold text-[var(--primary)]">Dashboard</a>
+            <a href="/tracker" class="hover:text-[var(--primary)]">Daily Log</a>
+            <a href="/weight" class="hover:text-[var(--primary)]">Weight Log</a>
+            <a href="/goals" class="hover:text-[var(--primary)]">Goals</a>
+            <a href="/logout" class="font-semibold text-[var(--secondary)] hover:opacity-80">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- Header / Greeting -->
+  <header class="top">
+    <div class="greet-card" style="flex:1;">
+      <div class="greet-left">
+        <p class="hi">Hi {{ session['user'] }} 👋</p>
+        <div class="date muted">{{ datetime.now().strftime('%A, %d %B %Y') }}</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="text-align:right; font-size:var(--type-small); color:rgba(5,3,21,0.6);">
+          <div class="muted">Streak</div>
+          <div style="font-weight:700; font-family:'Josefin Sans', sans-serif;">🔥 {{ streak }} days</div>
+        </div>
+
+        <div class="avatar">
+          <!-- placeholder profile pic - replace src with user image if available -->
+          <img src="static/avatar.jpg" alt="profile">
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Grid: Streak, Calories, Weight, Chart -->
+  <section class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+
+    <!-- Streak card (left top) -->
+     <!-- LEFT: STREAK (big card filling left side) -->
+    <div class="card" style="grid-row: span 2; position: relative; background: #075056;">
+
+        <div style="padding: 0.5rem 0 1rem;">
+
+    <h3 style="margin-bottom: 1rem; color: #E4EEF0;">Your Streak</h3>
+
+    <!-- Top Streak Row -->
+    <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 1.2rem;">
+
+        <!-- Badge -->
+        <div style="
+            background: linear-gradient(90deg, var(--color-secondary), #ff7a3f);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 16px rgba(255, 91, 4, 0.22);
+        ">
+            {{ streak }}
+        </div>
+
+        <div>
+            <div style="font-size: 0.85rem; color: white">
+                Days logged in a row
+            </div>
+
+            <div style="
+                font-weight: 700;
+                margin-top: 3px;
+                font-size: 1.05rem;
+                color: rgb(169, 228, 241);
+            ">
+                Keep going — consistency wins!
+            </div>
+        </div>
+    </div>
+
+    <!-- Center SVG Space -->
+    <div style="
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 0.2rem;
+    ">
+        <img src="/static/fire.svg" width="80";>
+    </div>
+
+</div>
+
+
+       
+
+    </div>
+
+    <!-- Today's calories (right top) -->
+    <div class="card">
+      <h3>Today's Calories</h3>
+      <div class="cal-progress">
+        <div class="cal-left">
+          <div class="cal-number">{{ consumed }} kcal <span style="font-weight:500; color:rgba(5,3,21,0.6)">/ {{ target }} kcal</span></div>
+          <div class="meter" aria-hidden="true">
+            <span id="calFill" style="width:0%"></span>
+          </div>
+          <div class="meter-labels">
+            <div class="muted">0 kcal</div>
+            <div class="muted">Goal: {{ target }} kcal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Weight card -->
+    <div class="card">
+      <h3> Weight</h3>
+      <div class="weight-row">
+        <div class="weight-main">
+          <div class="muted">Latest</div>
+          <div class="weight-value">
+            {% if latest_weight %}
+              {{ latest_weight }} kg
+            {% else %}
+              -- kg
+            {% endif %}
+          </div>
+          <div class="muted" style="font-size:0.78rem;">
+            {% if latest_weight_date %}
+              Updated: {{ latest_weight_date }}
+            {% else %}
+              No weight logged yet
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <button class="btn" id="addWeightBtn">+ Add Weight</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart (spans two columns on wide screens) -->
+    <div class="card chart-card" style="grid-column: 1 / -1;">
+      <h3>Weight Progress</h3>
+      <div id="weightChart" style="height: 260px;"></div>
+
+    </div>
+  </section>
+
+  <footer>
+    Logged in as {{ session['user'] }} | <a href="{{ url_for('logout') }}">Logout</a>
+  </footer>
+</div>
+
+<!-- Modal moved into body (previously inside a <script> which broke JS) -->
+<div id="weightModal" class="fixed inset-0 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center">
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-80">
+    <h2 class="text-xl font-semibold mb-4">Add Weight</h2>
+
+    <input id="modalWeightInput"
+           type="number"
+           step="0.1"
+           class="w-full mb-4 border rounded-xl px-3 py-2"
+           placeholder="Enter weight (kg)">
+
+    <div class="flex justify-end gap-3">
+      <button id="closeModalBtn" class="px-4 py-2 bg-gray-200 rounded-xl">Cancel</button>
+      <button id="saveWeightBtn" class="px-4 py-2 rounded-xl text-white"
+        style="background: var(--secondary);">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ---------- Scripts for chart + add weight (run after DOM is ready) ---------- -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // ========== Theme colors (for JS usage) ==========
+  const COLOR_PRIMARY = getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+  const COLOR_ACCENT = getComputedStyle(document.documentElement).getPropertyValue('--color-accent').trim();
+  const COLOR_SECONDARY = getComputedStyle(document.documentElement).getPropertyValue('--color-secondary').trim();
+
+  // Data passed from Flask
+  // Note: these Jinja injections must be rendered server-side (same as your original)
+  const calories = JSON.parse(`{{ calories | tojson | safe }}`);
+  const weights = JSON.parse(`{{ weights | tojson | safe }}`) || {};
+  const consumed = Number({{ consumed | default(0) }});
+  const target = Number({{ target | default(0) }});
+
+  // --- Fill calories meter ---
+  (function fillMeter(){
+    const percent = target > 0 ? Math.min(100, Math.round((consumed / target) * 100)) : 0;
+    const fillEl = document.getElementById('calFill');
+    if (fillEl) fillEl.style.width = percent + '%';
+  })();
+
+  // --- Prepare weight chart data (sorted by date) ---
+  const weightDates = Object.keys(weights).sort();
+  const weightValues = weightDates.map(d => Number(weights[d]));
+
+  // If there's no data, show sample single point so chart renders nicely
+  const labels = weightDates.length ? weightDates : [new Date().toISOString().slice(0,10)];
+  const dataVals = weightValues.length ? weightValues : [{{ latest_weight or 0 }}];
+
+  // Chart.js line chart (safe: run after DOM ready)
+ // Convert your weight JSON into arrays
+const dates = weightDates.length ? weightDates : [new Date().toISOString().slice(0,10)];
+const values = weightValues.length ? weightValues : [{{ latest_weight or 0 }}];
+
+var options = {
+    chart: {
+        type: 'line',
+        height: 260,
+        toolbar: { show: false },
+        zoom: { enabled: false }
+    },
+
+    stroke: {
+        curve: 'smooth',
+        width: 3,
+        colors: ['#0B7A78']
+    },
+
+    series: [{
+        name: "Weight",
+        data: values
+    }],
+
+    xaxis: {
+        categories: dates,
+        labels: {
+            style: {
+                colors: '#16232a99',
+                fontSize: '12px'
+            }
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false }
+    },
+
+    yaxis: {
+        labels: {
+            style: {
+                colors: '#16232a99',
+                fontSize: '12px'
+            }
+        }
+    },
+
+    grid: {
+        borderColor: 'rgba(0,0,0,0.05)',
+        strokeDashArray: 3
+    },
+
+    markers: {
+        size: 6,
+        colors: ['#FF7A3F'],
+        strokeColors: '#fff',
+        strokeWidth: 2,
+        hover: { size: 7 }
+    },
+
+    fill: {
+        type: 'gradient',
+        gradient: {
+            shadeIntensity: 0.4,
+            opacityFrom: 0.3,
+            opacityTo: 0,
+            stops: [0, 100],
+            colorStops: [
+                {
+                    offset: 0,
+                    color: '#0B7A7844'
+                },
+                {
+                    offset: 100,
+                    color: '#0B7A7800'
+                }
+            ]
+        }
+    },
+
+    tooltip: {
+        theme: 'dark',
+        style: { fontSize: '13px' }
+    }
+};
+
+var chart = new ApexCharts(document.querySelector("#weightChart"), options);
+chart.render();
+
+  // ---------- Add weight modal behavior ----------
+  const modal = document.getElementById("weightModal");
+  const addBtn = document.getElementById("addWeightBtn");
+  const saveBtn = document.getElementById("saveWeightBtn");
+  const closeBtn = document.getElementById("closeModalBtn");
+  const input = document.getElementById("modalWeightInput");
+
+  if (addBtn && modal && input) {
+    addBtn.addEventListener('click', () => {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      input.value = "";
+      setTimeout(() => input.focus(), 100);
+    });
+  }
+
+  if (closeBtn && modal) {
+    closeBtn.addEventListener('click', () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    });
+  }
+
+  if (saveBtn && modal && input) {
+    saveBtn.addEventListener('click', async () => {
+      const weight = parseFloat(input.value);
+      if (!weight || weight <= 0) {
+        alert("Enter a valid number.");
+        return;
+      }
+
+      try {
+        await fetch("/log_weight", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                weight: weight,
+                date: new Date().toISOString().slice(0,10)
+            })
+        });
+      } catch (err) {
+        console.error("Failed to post weight:", err);
+      }
+
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+
+      // reload to show updated latest_weight (server-side)
+      location.reload();
+    });
+  }
+
+  // close modal on ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+  });
+});
+</script>
+
+</body>
+</html>

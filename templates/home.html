@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lighter — Home</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Custom Theme -->
+    <style>
+        :root {
+            --text: #050315;
+            --bg: #E4EEF0;
+            --primary: #075056;
+            --secondary: #FF5B04;
+            --accent: #16232A;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Josefin Sans', sans-serif;
+        }
+
+        /* Smooth card hover */
+        .card {
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="w-full bg-white/90 backdrop-blur shadow-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex justify-between items-center py-4 px-4">
+
+            <!-- Logo -->
+            <div class="flex items-center gap-3">
+                <img src="/static/logo.png" class="w-9 h-9" alt="Logo">
+                <span class="text-xl font-semibold" style="color: var(--accent);">Lighter</span>
+            </div>
+
+            <!-- Menu -->
+            <div class="flex gap-6 text-[15px] font-medium">
+                <a href="/home" class="hover:text-[var(--primary)]">Home</a>
+                <a href="/dashboard" class="hover:text-[var(--primary)]">Dashboard</a>
+                <a href="/tracker" class="hover:text-[var(--primary)]">Daily Log</a>
+                <a href="/weight" class="hover:text-[var(--primary)]">Weight Log</a>
+                <a href="/goals" class="hover:text-[var(--primary)]">Goals</a>
+                <a href="/logout" class="font-semibold text-[var(--secondary)] hover:opacity-80">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO HEADER -->
+    <header class="w-full">
+        <div class="max-w-6xl mx-auto px-4 py-10">
+            <div class="p-8 rounded-3xl shadow-lg"
+                 style="background: linear-gradient(135deg, var(--primary), var(--accent)); color: #fff;">
+                 
+                <h1 class="text-3xl md:text-4xl font-semibold mb-2">Daily Health Tracker</h1>
+
+                <p class="text-white/80 text-lg">
+                    Stay consistent. Eat mindfully. Reach your goals.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- SUMMARY CARD -->
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="card bg-white p-6 rounded-3xl shadow mb-10">
+
+            <p class="text-sm opacity-70 mb-3">
+                Today's Summary — <span class="font-semibold">{{ today }}</span>
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <div>
+                    <p class="text-sm opacity-70">Target Calories</p>
+                    <p class="text-2xl font-semibold" style="color: var(--primary);">
+                        {{ target }} kcal
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-sm opacity-70">Consumed</p>
+                    <p class="text-2xl font-semibold text-[var(--secondary)]">
+                        {{ consumed }} kcal
+                    </p>
+                </div>
+
+                <div class="md:text-right">
+                    <p class="text-sm opacity-70">Remaining</p>
+                    <p class="text-3xl font-bold" style="color: var(--primary);">
+                        {{ remaining }} kcal
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MEAL LOGGING FORM -->
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="card bg-white p-6 rounded-3xl shadow mb-10">
+
+            <h2 class="text-xl font-semibold mb-4">Log Meal</h2>
+
+            <form id="calorieForm" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+
+                <!-- Meal Type -->
+                <select id="meal" required
+                    class="border rounded-xl p-3 focus:ring-2 focus:ring-[var(--primary)] focus:outline-none">
+                    <option value="">Meal Type</option>
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                </select>
+
+               <!-- ===== searchable food selector (replace old input/datalist) ===== -->
+<div id="foodWrapper" class="relative w-full">
+  <input
+    type="text"
+    id="foodInput"
+    placeholder="Search food…"
+    class="border rounded-xl p-3 w-full"
+    autocomplete="off"
+  />
+
+  <!-- suggestion dropdown (built from server-side 'foods') -->
+  <div
+    id="foodDropdown"
+    class="absolute bg-white border rounded-xl w-full mt-1 max-h-40 overflow-y-auto shadow hidden z-50"
+    role="listbox"
+    aria-label="Food suggestions"
+  >
+    {% for food in foods %}
+      <div
+        class="food-option p-2 hover:bg-gray-100 cursor-pointer"
+        data-value="{{ food }}"
+        data-value-lower="{{ food.lower() }}"
+        role="option"
+      >
+        {{ food }}
+      </div>
+    {% endfor %}
+  </div>
+
+    </datalist>
+                </div>
+
+                <!-- Amount -->
+                <div class="flex items-center gap-2">
+    <input type="number" id="amount" placeholder="Qty"
+        class="border rounded-xl p-3 w-full focus:ring-2 focus:ring-[var(--primary)] focus:outline-none">
+
+    <span id="unitDisplay" class="text-sm text-gray-600 font-medium"></span>
+<!-- unit label (will show 'per piece' / 'per bowl' etc.) -->
+<p id="unitLabel" class="text-sm text-gray-500 mt-1 ml-1"></p>
+</div>
+
+
+
+
+                <!-- Notes -->
+                <input id="notes" placeholder="Notes..."
+                    class="border rounded-xl p-3 w-full focus:ring-2 focus:ring-[var(--primary)] focus:outline-none">
+
+                <!-- Submit -->
+                <button type="submit"
+                    class="rounded-xl px-5 py-3 text-white font-semibold shadow"
+                    style="background: var(--primary);">
+                    Log Meal
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- DAILY LOG TABLE -->
+    <div class="max-w-6xl mx-auto px-4 mb-14">
+        <div class="card bg-white p-6 rounded-3xl shadow">
+
+            <h2 class="text-xl font-semibold mb-4">Today's Log</h2>
+
+            <table id="todayLogTable" class="w-full text-left border-collapse">
+    <thead>
+        <tr class="border-b text-gray-600 text-sm">
+            <th class="pb-2 px-2">S. No</th>
+            <th class="px-2">Meal</th>
+            <th class="px-2">Food</th>
+            <th class="px-2">Qty</th>
+            <th class="px-2">Calories</th>
+            <th class="px-2">Edit</th>
+        </tr>
+    </thead>
+    <tbody class="text-sm">
+        <!-- JS will populate rows dynamically here -->
+    </tbody>
+</table>
+
+
+        </div>
+    </div>
+    <div id="editModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span id="closeModal">&times;</span>
+    <h3>Edit Meal</h3>
+
+    <form id="editForm">
+        <label>Meal Type:</label>
+        <input type="text" id="editMeal">
+
+        <label>Food Name:</label>
+        <input type="text" id="editFood">
+
+        <label>Quantity:</label>
+        <input type="number" id="editQty">
+
+        <label>Unit:</label>
+        <input type="text" id="editUnit">
+
+        <label>Calories:</label>
+        <input type="number" id="editCal">
+
+        <label>Notes:</label>
+        <input type="text" id="editNotes">
+
+        <button type="submit">Save</button>
+    </form>
+  </div>
+</div>
+
+    <!-- FORM SCRIPT -->
+    <!-- ========== LOAD FOOD DATA FROM BACKEND ========== -->
+<script>
+    const FOOD_DATA_RAW = {{ foods | tojson | safe }};
+    const FOOD_DATA = {};
+    for (const key in FOOD_DATA_RAW) {
+        FOOD_DATA[key.toLowerCase()] = FOOD_DATA_RAW[key];
+    }
+</script>
+
+<!-- ========== SEARCHABLE FOOD DROPDOWN + UNIT DISPLAY ========== -->
+<script>
+    const wrapper = document.getElementById("foodWrapper");
+    const input = document.getElementById("foodInput");
+    const dropdown = document.getElementById("foodDropdown");
+    const options = Array.from(document.querySelectorAll(".food-option"));
+    const unitLabel = document.getElementById("unitLabel");
+
+    function openDropdown() {
+        dropdown.classList.remove("hidden");
+    }
+
+    function closeDropdown() {
+        dropdown.classList.add("hidden");
+    }
+
+    function filterOptions(text) {
+        text = text.toLowerCase();
+        options.forEach(opt => {
+            const item = opt.dataset.valueLower;
+            opt.style.display = item.includes(text) ? "block" : "none";
+        });
+        openDropdown();
+    }
+
+    // ---- Show dropdown on focus ----
+    input.addEventListener("focus", () => {
+        filterOptions(input.value);
+    });
+
+    // ---- Filter while typing ----
+    input.addEventListener("input", () => {
+        const raw = input.value.toLowerCase();
+        filterOptions(raw);
+
+        if (FOOD_DATA[raw]) {
+            unitLabel.textContent = FOOD_DATA[raw].unit;
+        } else {
+            unitLabel.textContent = "";
+        }
+    });
+
+    // ---- Select an item ----
+    options.forEach(opt => {
+        opt.addEventListener("click", () => {
+            const text = opt.dataset.value;
+            const lower = opt.dataset.valueLower;
+
+            input.value = text;
+
+            if (FOOD_DATA[lower]) {
+                unitLabel.textContent = FOOD_DATA[lower].unit;
+            } else {
+                unitLabel.textContent = "";
+            }
+
+            closeDropdown();
+            input.focus();
+        });
+    });
+
+    // ---- Click outside closes dropdown ----
+    document.addEventListener("click", (e) => {
+        if (!wrapper.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    // ---- Keyboard Navigation (Optional but smooth) ----
+    let activeIndex = -1;
+
+    function highlight(list) {
+        list.forEach((opt, i) => {
+            if (i === activeIndex) {
+                opt.classList.add("bg-gray-200");
+                opt.scrollIntoView({ block: "nearest" });
+            } else {
+                opt.classList.remove("bg-gray-200");
+            }
+        });
+    }
+
+    input.addEventListener("keydown", (e) => {
+        const visible = options.filter(o => o.style.display !== "none");
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeIndex = Math.min(activeIndex + 1, visible.length - 1);
+            highlight(visible);
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeIndex = Math.max(activeIndex - 1, 0);
+            highlight(visible);
+        }
+
+        if (e.key === "Enter") {
+            if (activeIndex >= 0 && visible[activeIndex]) {
+                visible[activeIndex].click();
+            }
+        }
+
+        if (e.key === "Escape") {
+            closeDropdown();
+        }
+    });
+</script>
+
+<!-- ========== FORM SUBMIT SCRIPT ========== -->
+<script>
+document.getElementById("calorieForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const rawFood = document.getElementById("foodInput").value.trim().toLowerCase();
+    const food = rawFood.split("(")[0].trim();
+    const meal = document.getElementById("meal").value;
+    const amount = document.getElementById("amount").value;
+    const notes = document.getElementById("notes").value;
+    const date = "{{ today }}";
+
+    const res = await fetch("/calculate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ meal, food, amount })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        const payload = { ...data, date, notes };
+
+        const save = await fetch("/log", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(payload)
+        });
+
+        if (save.ok) {
+            alert("Meal logged!");
+            location.reload();
+        }
+    }
+});
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  // Config
+  const DATA_FILES = ["/data/boo_meals.json", "/data/boo_data.json"]; // try meals first
+  let fullData = {};
+  let todayKey = null;
+  let currentEditIndex = null;
+
+  // Utility: safe fetch + parse
+  async function tryFetch(path) {
+    try {
+      const res = await fetch(path + "?cache=" + Math.random());
+      if (!res.ok) {
+        console.warn("fetch failed:", path, res.status);
+        return null;
+      }
+      const json = await res.json();
+      // if it's empty object {} or null-like, return null to signal 'no useful data'
+      if (!json || Object.keys(json).length === 0) return null;
+      return json;
+    } catch (err) {
+      console.error("fetch error for", path, err);
+      return null;
+    }
+  }
+
+  // Load data from available files (tries in order)
+  async function loadData() {
+    for (const f of DATA_FILES) {
+      const d = await tryFetch(f);
+      console.log("Tried", f, "=>", d ? "OK" : "no usable data");
+      if (d) {
+        fullData = d;
+        console.log("Using data from:", f);
+        finalizeLoad();
+        return;
+      }
+    }
+    // If we reach here, no data available in any file
+    fullData = {};
+    console.warn("No usable data found in any configured file.");
+    finalizeLoad();
+  }
+
+  // decide which date key to use (system date preferred)
+  function pickDateKey() {
+    const systemDate = new Date().toISOString().split("T")[0];
+    const keys = Object.keys(fullData).sort();
+    console.log("System date:", systemDate);
+    console.log("Available date keys:", keys);
+
+    if (fullData.hasOwnProperty(systemDate)) {
+      console.log("Using system date key:", systemDate);
+      return systemDate;
+    }
+    if (keys.length > 0) {
+      console.log("System date missing — using latest date key:", keys[keys.length - 1]);
+      return keys[keys.length - 1];
+    }
+    console.log("No date keys available.");
+    return null;
+  }
+
+  // render table
+  function renderTodayLog() {
+    const tbody = document.querySelector("#todayLogTable tbody");
+    if (!tbody) {
+      console.error("No table body found. Make sure <table id='todayLogTable'> with <tbody> exists.");
+      return;
+    }
+    tbody.innerHTML = "";
+
+    if (!todayKey || !fullData[todayKey] || fullData[todayKey].length === 0) {
+      tbody.innerHTML = "<tr><td colspan='6'>No entries for selected date</td></tr>";
+      return;
+    }
+
+    fullData[todayKey].forEach((item, index) => {
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${escapeHtml(item.meal || "")}</td>
+        <td>${escapeHtml(item.food || "")}</td>
+        <td>${escapeHtml(String(item.amount || ""))} ${escapeHtml(item.unit || "")}</td>
+        <td>${escapeHtml(String(item.calories || ""))}</td>
+        <td><button class="edit-btn" data-index="${index}">Edit</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    // attach handlers for edit buttons
+    Array.from(document.querySelectorAll(".edit-btn")).forEach(btn =>
+      btn.addEventListener("click", (e) => openEdit(Number(e.currentTarget.dataset.index)))
+    );
+  }
+
+  // open edit modal
+  function openEdit(index) {
+    currentEditIndex = index;
+    const item = fullData[todayKey][index];
+    if (!item) {
+      console.error("No item at index", index);
+      return;
+    }
+    document.getElementById("editMeal").value = item.meal || "";
+    document.getElementById("editFood").value = item.food || "";
+    document.getElementById("editQty").value = item.amount || "";
+    document.getElementById("editUnit").value = item.unit || "";
+    document.getElementById("editCal").value = item.calories || "";
+    document.getElementById("editNotes").value = item.notes || "";
+
+    document.getElementById("editModal").style.display = "block";
+  }
+
+  // helper: escape minimal HTML for safety in table
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  // close modal
+  const closeEl = document.getElementById("closeModal");
+  if (closeEl) closeEl.addEventListener("click", () => document.getElementById("editModal").style.display = "none");
+
+  // save edits (POST to /update_today — server should write to whichever file you prefer)
+  const editForm = document.getElementById("editForm");
+  if (editForm) {
+    editForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (todayKey === null) {
+        return alert("No date selected to save to.");
+      }
+
+      const updated = {
+        meal: document.getElementById("editMeal").value,
+        food: document.getElementById("editFood").value,
+        amount: Number(document.getElementById("editQty").value) || 0,
+        unit: document.getElementById("editUnit").value,
+        calories: Number(document.getElementById("editCal").value) || 0,
+        notes: document.getElementById("editNotes").value,
+        date: todayKey
+      };
+
+      // replace item
+      fullData[todayKey][currentEditIndex] = updated;
+
+      // POST updated fullData to backend (your /update_today route should save to data/boo_meals.json)
+      try {
+        const res = await fetch("/update_today", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(fullData)
+        });
+        const j = await res.json();
+        console.log("/update_today response:", j);
+      } catch (err) {
+        console.error("Failed to POST update:", err);
+      }
+
+      document.getElementById("editModal").style.display = "none";
+      renderTodayLog();
+    });
+  }
+
+  // finalize after load
+  function finalizeLoad() {
+    console.log("Loaded fullData (final):", fullData);
+    todayKey = pickDateKey();
+    console.log("Selected date key:", todayKey, "entries:", todayKey ? fullData[todayKey] : null);
+
+    renderTodayLog();
+  }
+
+  // start
+  loadData();
+});
+</script>
+
+
+
+</body>
+</html>
