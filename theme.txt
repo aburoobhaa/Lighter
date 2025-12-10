@@ -1,0 +1,9 @@
+TEXT: #050315
+BG:  #E4EEF0 
+PRIMARY: #075056 
+SECONDARY: #FF5B04
+ACCENT: #16232a 
+
+HEADING : Josefin Sans
+BODY: Inter
+TYPE SCALE: 1.333 - perfect fourth 

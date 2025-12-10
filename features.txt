@@ -1,0 +1,29 @@
+1️⃣ Authentication
+
+Login / Logout (already started)
+
+2️⃣ Meal Tracker
+
+Choose meal type, food, serving size
+
+Auto-calculate calories
+
+Store per user in DB
+
+3️⃣ Weight & Goal Tracker
+
+Log daily weight
+
+Calculate calorie deficit & target weight
+
+4️⃣ Dashboard
+
+Visualize:
+
+Daily calories vs goal
+
+Weight trend
+
+Goal completion ✅
+
+(Use Chart.js or Plotly)
